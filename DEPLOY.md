@@ -20,11 +20,11 @@ This is simpler and uses only one free service.
      - **Region**: Oregon (US West) or closest to you
      - **Branch**: `main`
      - **Runtime**: `Python 3`
-     - **Build Command**: 
+     - **Build Command**:
        ```bash
        pip install -r requirements.txt && python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')" && cd webui && npm install && npm run build
        ```
-     - **Start Command**: 
+     - **Start Command**:
        ```bash
        uvicorn api:app --host 0.0.0.0 --port $PORT
        ```
