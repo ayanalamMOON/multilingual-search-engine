@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Format Test</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #0a1224;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(8, 14, 28, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        h3 {
+            color: #8fb3ff;
+        }
+
+        .before {
+            color: #ff9999;
+        }
+
+        .after {
+            color: #99ff99;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: inherit;
+            margin: 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Text Formatting Test</h1>
+
+        <div class="card">
+            <h3 class="before">Before (with escape sequences):</h3>
+            <p id="before"></p>
+        </div>
+
+        <div class="card">
+            <h3 class="after">After (formatted):</h3>
+            <pre id="after"></pre>
+        </div>
+    </div>
+
+    <script>
+        const rawText = "\"Unspeakable Lyrics[Intro]\\nAll I wanna say to you\\nOh yeah\\n\\n[Verse 1]\\nI was unfeeling when you discovered me\\nGave me a reason to not deny my needs\\nI was unwilling to give my love away\\nBut you decided to give yours anyway\"";
+
+        const formatText = (text) => {
+            if (!text) return ''
+            return text
+                .replace(/\\n/g, '\n')
+                .replace(/\\r/g, '')
+                .replace(/\\t/g, '  ')
+                .replace(/\\/g, '')
+                .trim()
+        };
+
+        document.getElementById('before').textContent = rawText;
+        document.getElementById('after').textContent = formatText(rawText);
+    </script>
+</body>
+
+</html>
