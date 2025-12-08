@@ -4,12 +4,16 @@ import asyncio
 import hashlib
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
+from rag import create_rag_engine, RAGEngine
 from app import (
     Settings,
     _is_devanagari,
@@ -40,6 +44,7 @@ class RecommenderState:
     hi_docs: int
     en_docs: int
     client: Any = None
+    rag_engine: Optional[RAGEngine] = None
 
 
 class SearchRequest(BaseModel):
@@ -69,6 +74,29 @@ class SearchResponse(BaseModel):
     backend: str
     results: List[SearchResult]
     counts: Dict[str, int]
+
+
+class RAGRequest(BaseModel):
+    query: str = Field(..., min_length=1, description="Query text")
+    top_k: int = Field(5, ge=1, le=10, description="Number of results to retrieve")
+    mode: Literal["summary", "recommendation", "chat"] = Field(
+        "summary", description="RAG mode: summary, recommendation, or chat"
+    )
+
+
+class RAGResponse(BaseModel):
+    query: str
+    response: str
+    sources: List[Dict[str, Any]]
+    mode: str
+    rag_available: bool = True
+
+
+class RAGResponse(BaseModel):
+    query: str
+    response: str
+    sources: List[Dict[str, Any]]
+    mode: str
 
 
 class RecommenderEngine:
@@ -157,6 +185,7 @@ class RecommenderEngine:
                 hi_docs=hi_count,
                 en_docs=en_count,
                 client=client,
+                rag_engine=None,  # Will be initialized on first RAG request
             )
             return self.state
 
@@ -248,6 +277,108 @@ class RecommenderEngine:
             results=formatted,
             counts={"hi": state.hi_docs, "en": state.en_docs},
         )
+    
+    def _search_wrapper(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+        """Wrapper function for RAG engine to use our search"""
+        import asyncio
+        
+        # Create a search request
+        request = SearchRequest(query=query, top_k=top_k, lang="auto")
+        
+        # Run async search in sync context
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            response = loop.run_until_complete(self.search(request))
+            return [
+                {
+                    "id": r.id,
+                    "text": r.text,
+                    "title": r.title,
+                    "poet": r.poet,
+                    "language": r.language,
+                    "score": r.score,
+                    "period": r.period,
+                    "hinglish": r.hinglish,
+                }
+                for r in response.results
+            ]
+        finally:
+            loop.close()
+    
+    async def ensure_rag_ready(self) -> bool:
+        """Initialize RAG engine if not already done"""
+        state = await self.ensure_ready()
+        
+        if state.rag_engine is not None:
+            return True
+        
+        try:
+            # Try OpenAI first, fallback to HuggingFace
+            import os
+            use_openai = bool(os.getenv("OPENAI_API_KEY"))
+            
+            state.rag_engine = create_rag_engine(
+                search_function=self._search_wrapper,
+                use_openai=use_openai,
+            )
+            
+            return state.rag_engine is not None
+        except Exception as e:
+            print(f"Failed to initialize RAG engine: {e}")
+            return False
+    
+    async def generate_rag_response(self, request: RAGRequest) -> RAGResponse:
+        """Generate RAG response"""
+        rag_ready = await self.ensure_rag_ready()
+        state = await self.ensure_ready()
+        
+        if not rag_ready or state.rag_engine is None:
+            raise HTTPException(
+                status_code=503,
+                detail="RAG engine not available. Please set OPENAI_API_KEY or HUGGINGFACE_TOKEN environment variable."
+            )
+        
+        try:
+            if request.mode == "summary":
+                result = state.rag_engine.generate_summary(request.query, request.top_k)
+                return RAGResponse(
+                    query=request.query,
+                    response=result["summary"],
+                    sources=result["source_documents"],
+                    mode="summary",
+                )
+            elif request.mode == "recommendation":
+                result = state.rag_engine.generate_recommendation(request.query, request.top_k)
+                return RAGResponse(
+                    query=request.query,
+                    response=result["recommendation"],
+                    sources=result["source_documents"],
+                    mode="recommendation",
+                )
+            else:  # chat mode
+                response_text = state.rag_engine.chat(request.query, top_k=request.top_k)
+                # For chat mode, we need to get sources separately
+                search_req = SearchRequest(query=request.query, top_k=request.top_k, lang="auto")
+                search_resp = await self.search(search_req)
+                sources = [
+                    {
+                        "title": r.title,
+                        "poet": r.poet,
+                        "text": r.text[:200] + "..." if len(r.text) > 200 else r.text,
+                        "language": r.language,
+                        "score": r.score,
+                    }
+                    for r in search_resp.results
+                ]
+                return RAGResponse(
+                    query=request.query,
+                    response=response_text,
+                    sources=sources,
+                    mode="chat",
+                )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"RAG generation failed: {str(e)}")
 
 
 engine = RecommenderEngine()
@@ -286,10 +417,12 @@ app.add_middleware(
 @app.get("/api/health")
 async def health():
     state = await engine.ensure_ready()
+    rag_available = await engine.ensure_rag_ready()
     return {
         "status": "ok",
         "backend": state.backend,
         "counts": {"hi": state.hi_docs, "en": state.en_docs},
+        "rag_available": rag_available,
     }
 
 
@@ -298,6 +431,23 @@ async def search(request: SearchRequest):
     if not request.query.strip():
         raise HTTPException(status_code=400, detail="query is required")
     return await engine.search(request)
+
+
+@app.post("/api/rag", response_model=RAGResponse)
+async def rag_generate(request: RAGRequest):
+    """
+    Generate AI-enhanced responses using RAG
+    
+    Modes:
+    - summary: Generate a summary of retrieved content
+    - recommendation: Get personalized recommendations
+    - chat: Interactive chat about the content
+    
+    Requires: OPENAI_API_KEY or HUGGINGFACE_TOKEN environment variable
+    """
+    if not request.query.strip():
+        raise HTTPException(status_code=400, detail="query is required")
+    return await engine.generate_rag_response(request)
 
 
 @app.get("/")

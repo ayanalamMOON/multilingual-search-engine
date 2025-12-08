@@ -33,6 +33,7 @@ A modern semantic search engine for discovering songs and poems across Hindi, Hi
 
 - **Trilingual Support**: Seamlessly search across Hindi (Devanagari), Hinglish (romanized Hindi), and English
 - **Semantic Search**: Powered by multilingual sentence transformers for deep contextual understanding
+- **RAG (Retrieval-Augmented Generation)**: AI-powered summaries and recommendations using LangChain
 - **High Performance**: FAISS vector indexing for lightning-fast similarity search
 - **Modern UI**: Beautiful React interface with real-time search and elegant design
 - **Flexible Backend**: Support for both FAISS (local) and Weaviate (distributed) vector databases
@@ -43,8 +44,9 @@ A modern semantic search engine for discovering songs and poems across Hindi, Hi
 This project leverages a powerful tech stack:
 
 - **Backend**: FastAPI for high-performance async API endpoints
-- **Embeddings**: \`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2\` (500MB model)
+- **Embeddings**: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (500MB model)
 - **Vector Store**: FAISS for local indexing with cosine similarity; Weaviate optional for production
+- **RAG**: LangChain with OpenAI GPT-3.5 or HuggingFace models for AI-generated insights
 - **Frontend**: React 18 + Vite with modern CSS animations and Lucide icons
 - **Data Sources**: Curated Hugging Face datasets (~1.1k Hindi poems, ~20k+ English lyrics)
 - **Document Processing**: LangChain for intelligent text chunking and retrieval
@@ -121,7 +123,7 @@ Terminal 2 - Start Frontend Dev Server:
 # From project root
 cd webui
 npm install  # First time only
-node ./node_modules/vite/bin/vite.js dev --host --port 5173
+*node ./node_modules/vite/bin/vite.js dev --host --port 5173*
 ```
 
 Access the application at: http://localhost:5173
@@ -207,6 +209,51 @@ Response:
 }
 ```
 
+#### RAG (AI-Enhanced Responses)
+
+```http
+POST /api/rag
+Content-Type: application/json
+```
+
+Request body:
+
+```json
+{
+  "query": "songs about love and separation",
+  "top_k": 5,
+  "mode": "summary"
+}
+```
+
+Parameters:
+
+- `query` (string, required): Search query
+- `top_k` (integer, optional): Number of results to retrieve (default: 5, max: 10)
+- `mode` (string, optional): RAG mode - `"summary"`, `"recommendation"`, or `"chat"` (default: `"summary"`)
+
+Response:
+
+```json
+{
+  "query": "songs about love and separation",
+  "response": "The retrieved songs explore themes of longing, heartbreak, and the pain of separation. They capture deep emotional connections and the bittersweet nature of love lost, making them perfect for moments of reflection and emotional catharsis.",
+  "sources": [
+    {
+      "title": "Song Title",
+      "poet": "Artist Name",
+      "text": "Excerpt from the song...",
+      "language": "en",
+      "score": 0.95
+    }
+  ],
+  "mode": "summary",
+  "rag_available": true
+}
+```
+
+**Note:** RAG features require `OPENAI_API_KEY` or `HUGGINGFACE_TOKEN` environment variable.
+
 ## Configuration
 
 Create a `.env` file in the project root:
@@ -214,6 +261,10 @@ Create a `.env` file in the project root:
 ```env
 # Hugging Face (optional, for higher rate limits)
 HUGGINGFACE_TOKEN=your_token_here
+
+# RAG / AI Features (optional - enables AI-powered summaries and recommendations)
+OPENAI_API_KEY=your_openai_key_here         # For OpenAI GPT models (recommended)
+# OR use HUGGINGFACE_TOKEN above for HuggingFace models (free alternative)
 
 # Dataset Configuration
 DATASET_ID=Sourabh2/Hindi_Poems
@@ -238,7 +289,8 @@ WEAVIATE_PERSIST_PATH=.weaviate # Local persistence directory
 
 | Variable            | Description                                                 | Default                                 |
 | ------------------- | ----------------------------------------------------------- | --------------------------------------- |
-| `HUGGINGFACE_TOKEN` | Personal access token for Hugging Face (avoids rate limits) | None                                    |
+| `OPENAI_API_KEY`    | OpenAI API key for RAG features (GPT-3.5/GPT-4)             | None                                    |
+| `HUGGINGFACE_TOKEN` | HuggingFace token (for rate limits & alternative RAG)       | None                                    |
 | `DATASET_ID`        | Hindi poems dataset(s), comma/newline separated             | `Sourabh2/Hindi_Poems`                  |
 | `EN_DATASET_ID`     | English lyrics dataset(s), comma/newline separated          | Multiple datasets                       |
 | `EMBED_MODEL`       | Sentence transformer model for embeddings                   | `paraphrase-multilingual-MiniLM-L12-v2` |
