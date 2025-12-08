@@ -1,16 +1,20 @@
 """RAG (Retrieval-Augmented Generation) module using LangChain + HuggingFace
 Enhances search results with AI-generated summaries and insights
+Includes conversation memory for multi-turn interactions
 """
 
 from __future__ import annotations
 
 import os
+import uuid
 from typing import Any, Dict, List, Optional
 import requests
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.callbacks import CallbackManagerForRetrieverRun
+from langchain_core.messages import HumanMessage, AIMessage
+from langchain.memory import ConversationBufferMemory
 
 
 class CustomVectorRetriever(BaseRetriever):
@@ -66,13 +70,25 @@ class HuggingFaceLLM:
         """Call the model - LangChain compatible interface"""
         return self.predict(prompt)
 
-    def predict(self, text: str) -> str:
-        """Generate text from prompt using OpenAI-compatible chat completion API"""
+    def predict(self, text: str, chat_history: Optional[List[Dict[str, str]]] = None) -> str:
+        """Generate text from prompt using OpenAI-compatible chat completion API
+        
+        Args:
+            text: The current user message or prompt
+            chat_history: Optional list of previous messages [{"role": "user"|"assistant", "content": str}]
+        """
+        messages = []
+        
+        # Add chat history if provided
+        if chat_history:
+            messages.extend(chat_history)
+        
+        # Add current message
+        messages.append({"role": "user", "content": text})
+        
         payload = {
             "model": self.model,
-            "messages": [
-                {"role": "user", "content": text}
-            ],
+            "messages": messages,
             "max_tokens": 256,
             "temperature": 0.7,
             "stream": False
@@ -111,7 +127,10 @@ class HuggingFaceLLM:
 
 
 class RAGEngine:
-    """RAG engine combining vector search with LangChain and HuggingFace LLM"""
+    """RAG engine combining vector search with LangChain and HuggingFace LLM
+    
+    Includes conversation memory management for multi-turn interactions.
+    """
 
     def __init__(
         self,
@@ -133,6 +152,9 @@ class RAGEngine:
             raise ValueError("HUGGINGFACEHUB_API_TOKEN or HUGGINGFACE_TOKEN environment variable required")
 
         self.llm = HuggingFaceLLM(api_token=api_key, model=model_name)
+        
+        # Session-based memory storage
+        self.sessions: Dict[str, ConversationBufferMemory] = {}
 
     def generate_summary(self, query: str, top_k: int = 5) -> Dict[str, Any]:
         """Generate a summary of search results using LangChain"""
@@ -192,8 +214,95 @@ Recommendations:"""
             "sources": [doc.metadata for doc in docs],
         }
 
-    def chat(self, query: str, user_message: str, top_k: int = 3) -> Dict[str, Any]:
-        """Interactive chat about search results"""
+    def get_or_create_session(self, session_id: Optional[str] = None) -> str:
+        """Get existing session or create new one
+        
+        Args:
+            session_id: Optional session ID. If None, creates new session.
+            
+        Returns:
+            Session ID (existing or newly created)
+        """
+        if session_id and session_id in self.sessions:
+            return session_id
+        
+        new_session_id = session_id or str(uuid.uuid4())
+        self.sessions[new_session_id] = ConversationBufferMemory(
+            return_messages=True,
+            memory_key="chat_history"
+        )
+        return new_session_id
+    
+    def get_chat_history(self, session_id: str) -> List[Dict[str, str]]:
+        """Get chat history for a session
+        
+        Args:
+            session_id: The session ID
+            
+        Returns:
+            List of message dictionaries with 'role' and 'content' keys
+        """
+        if session_id not in self.sessions:
+            return []
+        
+        memory = self.sessions[session_id]
+        messages = memory.chat_memory.messages
+        
+        # Convert LangChain messages to dict format for HuggingFace API
+        history = []
+        for msg in messages:
+            if isinstance(msg, HumanMessage):
+                history.append({"role": "user", "content": msg.content})
+            elif isinstance(msg, AIMessage):
+                history.append({"role": "assistant", "content": msg.content})
+        
+        return history
+    
+    def clear_session(self, session_id: str) -> bool:
+        """Clear chat history for a session
+        
+        Args:
+            session_id: The session ID to clear
+            
+        Returns:
+            True if session was cleared, False if session not found
+        """
+        if session_id in self.sessions:
+            self.sessions[session_id].clear()
+            return True
+        return False
+    
+    def delete_session(self, session_id: str) -> bool:
+        """Delete a session entirely
+        
+        Args:
+            session_id: The session ID to delete
+            
+        Returns:
+            True if session was deleted, False if session not found
+        """
+        if session_id in self.sessions:
+            del self.sessions[session_id]
+            return True
+        return False
+
+    def chat(self, query: str, user_message: str, session_id: Optional[str] = None, top_k: int = 3) -> Dict[str, Any]:
+        """Interactive chat about search results with conversation memory
+        
+        Args:
+            query: Search query to retrieve relevant documents
+            user_message: User's chat message
+            session_id: Optional session ID for conversation continuity
+            top_k: Number of documents to retrieve
+            
+        Returns:
+            Dict with query, user_message, response, sources, and session_id
+        """
+        # Get or create session
+        session_id = self.get_or_create_session(session_id)
+        memory = self.sessions[session_id]
+        
+        # Retrieve relevant documents
         retriever = CustomVectorRetriever(self.search_func, top_k=top_k)
         docs = retriever._get_relevant_documents(query)
 
@@ -202,6 +311,7 @@ Recommendations:"""
             for doc in docs
         ])
 
+        # Build prompt with context
         prompt_text = f"""You are a knowledgeable assistant helping users explore poetry and lyrics.
 
 Relevant search results for "{query}":
@@ -211,13 +321,22 @@ User question: {user_message}
 
 Response:"""
 
-        response = self.llm.predict(prompt_text)
+        # Get chat history in format for HuggingFace API
+        chat_history = self.get_chat_history(session_id)
+        
+        # Generate response with chat history
+        response = self.llm.predict(prompt_text, chat_history=chat_history)
+        
+        # Save to memory
+        memory.chat_memory.add_user_message(user_message)
+        memory.chat_memory.add_ai_message(response)
 
         return {
             "query": query,
             "user_message": user_message,
             "response": response,
             "sources": [doc.metadata for doc in docs],
+            "session_id": session_id,
         }
 
 

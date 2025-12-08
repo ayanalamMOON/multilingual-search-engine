@@ -93,6 +93,7 @@ class RAGRequest(BaseModel):
         "summary", description="RAG mode: summary, recommendation, or chat"
     )
     user_message: Optional[str] = Field(None, description="User message for chat mode")
+    session_id: Optional[str] = Field(None, description="Session ID for conversation continuity in chat mode")
 
 
 class RAGResponse(BaseModel):
@@ -101,13 +102,8 @@ class RAGResponse(BaseModel):
     sources: List[Dict[str, Any]]
     mode: str
     rag_available: bool = True
-
-
-class RAGResponse(BaseModel):
-    query: str
-    response: str
-    sources: List[Dict[str, Any]]
-    mode: str
+    session_id: Optional[str] = Field(None, description="Session ID for chat mode")
+    chat_history: Optional[List[Dict[str, str]]] = Field(None, description="Chat history for the session")
 
 
 class RecommenderEngine:
@@ -379,13 +375,20 @@ class RecommenderEngine:
                 result = state.rag_engine.chat(
                     query=request.query,
                     user_message=request.user_message or "Tell me about these results",
+                    session_id=request.session_id,
                     top_k=request.top_k
                 )
+                # Get updated chat history
+                session_id = result.get("session_id")
+                chat_history = state.rag_engine.get_chat_history(session_id) if session_id else []
+                
                 return RAGResponse(
                     query=request.query,
                     response=result["response"],
                     sources=result["sources"],
                     mode="chat",
+                    session_id=session_id,
+                    chat_history=chat_history,
                 )
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"RAG generation failed: {str(e)}")
@@ -451,13 +454,88 @@ async def rag_generate(request: RAGRequest):
     Modes:
     - summary: Generate a summary of retrieved content
     - recommendation: Get personalized recommendations
-    - chat: Interactive chat about the content
+    - chat: Interactive chat about the content (with conversation memory)
 
-    Requires: OPENAI_API_KEY or HUGGINGFACE_TOKEN environment variable
+    Chat mode supports session_id for multi-turn conversations.
+    If no session_id is provided, a new session will be created.
+
+    Requires: HUGGINGFACEHUB_API_TOKEN or HUGGINGFACE_TOKEN environment variable
     """
     if not request.query.strip():
         raise HTTPException(status_code=400, detail="query is required")
     return await engine.generate_rag_response(request)
+
+
+@app.get("/api/rag/history/{session_id}")
+async def get_chat_history(session_id: str):
+    """
+    Get chat history for a specific session
+    
+    Returns the full conversation history including user messages and AI responses.
+    """
+    rag_ready = await engine.ensure_rag_ready()
+    state = await engine.ensure_ready()
+    
+    if not rag_ready or state.rag_engine is None:
+        raise HTTPException(status_code=503, detail="RAG engine not available")
+    
+    history = state.rag_engine.get_chat_history(session_id)
+    
+    return {
+        "session_id": session_id,
+        "history": history,
+        "message_count": len(history)
+    }
+
+
+@app.post("/api/rag/clear/{session_id}")
+async def clear_chat_history(session_id: str):
+    """
+    Clear chat history for a specific session
+    
+    Removes all messages but keeps the session active.
+    """
+    rag_ready = await engine.ensure_rag_ready()
+    state = await engine.ensure_ready()
+    
+    if not rag_ready or state.rag_engine is None:
+        raise HTTPException(status_code=503, detail="RAG engine not available")
+    
+    cleared = state.rag_engine.clear_session(session_id)
+    
+    if not cleared:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+    
+    return {
+        "session_id": session_id,
+        "status": "cleared",
+        "message": "Chat history cleared successfully"
+    }
+
+
+@app.delete("/api/rag/session/{session_id}")
+async def delete_chat_session(session_id: str):
+    """
+    Delete a chat session entirely
+    
+    Removes the session and all associated conversation history.
+    """
+    rag_ready = await engine.ensure_rag_ready()
+    state = await engine.ensure_ready()
+    
+    if not rag_ready or state.rag_engine is None:
+        raise HTTPException(status_code=503, detail="RAG engine not available")
+    
+    deleted = state.rag_engine.delete_session(session_id)
+    
+    if not deleted:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+    
+    return {
+        "session_id": session_id,
+        "status": "deleted",
+        "message": "Session deleted successfully"
+    }
 
 
 @app.get("/")

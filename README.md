@@ -27,15 +27,16 @@ A modern semantic search engine for discovering songs and poems across Hindi, Hi
 - [Technical Details](#technical-details)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
-- [Contributing](#contributing)
+**- [Contributing](#contributing)
 
 ## Features
 
 - **Trilingual Support**: Seamlessly search across Hindi (Devanagari), Hinglish (romanized Hindi), and English
 - **Semantic Search**: Powered by multilingual sentence transformers for deep contextual understanding
-- **RAG (Retrieval-Augmented Generation)**: AI-powered summaries and recommendations using LangChain
+- **RAG (Retrieval-Augmented Generation)**: AI-powered summaries, recommendations, and interactive chat using LangChain
+- **Conversation Memory**: Multi-turn chat with context retention using LangChain memory management
 - **High Performance**: FAISS vector indexing for lightning-fast similarity search
-- **Modern UI**: Beautiful React interface with real-time search and elegant design
+- **Modern UI**: Beautiful React interface with real-time search and chat history display
 - **Flexible Backend**: Support for both FAISS (local) and Weaviate (distributed) vector databases
 - **Rich Metadata**: Search results include language detection, similarity scores, and transliterations
 
@@ -46,7 +47,7 @@ This project leverages a powerful tech stack:
 - **Backend**: FastAPI for high-performance async API endpoints
 - **Embeddings**: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (500MB model)
 - **Vector Store**: FAISS for local indexing with cosine similarity; Weaviate optional for production
-- **RAG**: LangChain with OpenAI GPT-3.5 or HuggingFace models for AI-generated insights
+- **RAG**: LangChain with HuggingFace models for AI-generated insights and conversational memory
 - **Frontend**: React 18 + Vite with modern CSS animations and Lucide icons
 - **Data Sources**: Curated Hugging Face datasets (~1.1k Hindi poems, ~20k+ English lyrics)
 - **Document Processing**: LangChain for intelligent text chunking and retrieval
@@ -222,7 +223,9 @@ Request body:
 {
   "query": "songs about love and separation",
   "top_k": 5,
-  "mode": "summary"
+  "mode": "chat",
+  "user_message": "What makes these songs emotionally powerful?",
+  "session_id": "optional-session-id"
 }
 ```
 
@@ -231,6 +234,8 @@ Parameters:
 - `query` (string, required): Search query
 - `top_k` (integer, optional): Number of results to retrieve (default: 5, max: 10)
 - `mode` (string, optional): RAG mode - `"summary"`, `"recommendation"`, or `"chat"` (default: `"summary"`)
+- `user_message` (string, optional): User's question for chat mode
+- `session_id` (string, optional): Session ID for conversation continuity in chat mode
 
 Response:
 
@@ -247,12 +252,26 @@ Response:
       "score": 0.95
     }
   ],
-  "mode": "summary",
+  "mode": "chat",
+  "session_id": "abc-123-def-456",
+  "chat_history": [
+    {"role": "user", "content": "What makes these songs emotionally powerful?"},
+    {"role": "assistant", "content": "The retrieved songs explore..."}
+  ],
   "rag_available": true
 }
 ```
 
-**Note:** RAG features require `OPENAI_API_KEY` or `HUGGINGFACE_TOKEN` environment variable.
+**Chat Memory Features:**
+- Multi-turn conversations with context retention
+- Session-based memory management
+- View history: `GET /api/rag/history/{session_id}`
+- Clear history: `POST /api/rag/clear/{session_id}`
+- Delete session: `DELETE /api/rag/session/{session_id}`
+
+See [CHAT_MEMORY.md](./CHAT_MEMORY.md) for detailed documentation.
+
+**Note:** RAG features require `HUGGINGFACEHUB_API_TOKEN` or `HUGGINGFACE_TOKEN` environment variable.
 
 ## Configuration
 

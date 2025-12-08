@@ -1,4 +1,4 @@
-import { AlertTriangle, Clock, FileText, Flag, Globe, Languages, Lightbulb, MessageSquare, Music, Music2, Search, Sparkles, Zap } from 'lucide-react'
+import { AlertTriangle, Clock, FileText, Flag, Globe, Languages, Lightbulb, MessageSquare, Music, Music2, Search, Sparkles, Trash2, X, Zap } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import './App.css'
 
@@ -77,6 +77,8 @@ function App() {
     const [ragMode, setRagMode] = useState('summary')
     const [ragResponse, setRagResponse] = useState(null)
     const [userMessage, setUserMessage] = useState('')
+    const [sessionId, setSessionId] = useState(null)
+    const [chatHistory, setChatHistory] = useState([])
 
     const apiBase = useMemo(() => API_BASE.replace(/\/$/, ''), [])
 
@@ -106,7 +108,8 @@ function App() {
                         query,
                         top_k: Number(topK),
                         mode: ragMode,
-                        user_message: ragMode === 'chat' ? userMessage : undefined
+                        user_message: ragMode === 'chat' ? userMessage : undefined,
+                        session_id: ragMode === 'chat' ? sessionId : undefined
                     }),
                 })
 
@@ -117,6 +120,14 @@ function App() {
 
                 const data = await response.json()
                 setRagResponse(data)
+                
+                // Update session ID and chat history for chat mode
+                if (ragMode === 'chat' && data.session_id) {
+                    setSessionId(data.session_id)
+                    setChatHistory(data.chat_history || [])
+                    setUserMessage('') // Clear input after sending
+                }
+                
                 setResults([]) // Clear regular results
                 setMeta(null)
             } else {
@@ -149,6 +160,23 @@ function App() {
     const handleSampleClick = (text) => {
         setQuery(text)
         setTimeout(() => handleSubmit(), 0)
+    }
+
+    const clearChatHistory = async () => {
+        if (!sessionId) return
+        
+        try {
+            const response = await fetch(`${apiBase}/api/rag/clear/${sessionId}`, {
+                method: 'POST',
+            })
+            
+            if (response.ok) {
+                setChatHistory([])
+                setRagResponse(null)
+            }
+        } catch (err) {
+            console.error('Failed to clear chat history:', err)
+        }
     }
 
     return (
@@ -352,6 +380,41 @@ function App() {
                     <AlertTriangle className="alert-icon" size={20} />
                     {error}
                 </div>
+            )}
+
+            {/* Chat History Display */}
+            {ragMode === 'chat' && chatHistory.length > 0 && (
+                <section className="chat-history-section">
+                    <div className="chat-history-card">
+                        <div className="chat-history-header">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <MessageSquare size={20} />
+                                <h3 style={{ margin: 0 }}>Chat History ({chatHistory.length} messages)</h3>
+                            </div>
+                            <button
+                                type="button"
+                                className="clear-history-btn"
+                                onClick={clearChatHistory}
+                                title="Clear chat history"
+                            >
+                                <Trash2 size={16} />
+                                Clear
+                            </button>
+                        </div>
+                        <div className="chat-history-messages">
+                            {chatHistory.map((msg, idx) => (
+                                <div key={idx} className={`chat-message ${msg.role}`}>
+                                    <div className="chat-message-label">
+                                        {msg.role === 'user' ? 'You' : 'AI'}
+                                    </div>
+                                    <div className="chat-message-content">
+                                        {msg.content}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
             )}
 
             {/* RAG Response Display */}
