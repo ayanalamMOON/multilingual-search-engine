@@ -381,7 +381,7 @@ class RecommenderEngine:
                 # Get updated chat history
                 session_id = result.get("session_id")
                 chat_history = state.rag_engine.get_chat_history(session_id) if session_id else []
-                
+
                 return RAGResponse(
                     query=request.query,
                     response=result["response"],
@@ -470,17 +470,17 @@ async def rag_generate(request: RAGRequest):
 async def get_chat_history(session_id: str):
     """
     Get chat history for a specific session
-    
+
     Returns the full conversation history including user messages and AI responses.
     """
     rag_ready = await engine.ensure_rag_ready()
     state = await engine.ensure_ready()
-    
+
     if not rag_ready or state.rag_engine is None:
         raise HTTPException(status_code=503, detail="RAG engine not available")
-    
+
     history = state.rag_engine.get_chat_history(session_id)
-    
+
     return {
         "session_id": session_id,
         "history": history,
@@ -492,20 +492,20 @@ async def get_chat_history(session_id: str):
 async def clear_chat_history(session_id: str):
     """
     Clear chat history for a specific session
-    
+
     Removes all messages but keeps the session active.
     """
     rag_ready = await engine.ensure_rag_ready()
     state = await engine.ensure_ready()
-    
+
     if not rag_ready or state.rag_engine is None:
         raise HTTPException(status_code=503, detail="RAG engine not available")
-    
+
     cleared = state.rag_engine.clear_session(session_id)
-    
+
     if not cleared:
         raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
-    
+
     return {
         "session_id": session_id,
         "status": "cleared",
@@ -517,20 +517,20 @@ async def clear_chat_history(session_id: str):
 async def delete_chat_session(session_id: str):
     """
     Delete a chat session entirely
-    
+
     Removes the session and all associated conversation history.
     """
     rag_ready = await engine.ensure_rag_ready()
     state = await engine.ensure_ready()
-    
+
     if not rag_ready or state.rag_engine is None:
         raise HTTPException(status_code=503, detail="RAG engine not available")
-    
+
     deleted = state.rag_engine.delete_session(session_id)
-    
+
     if not deleted:
         raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
-    
+
     return {
         "session_id": session_id,
         "status": "deleted",

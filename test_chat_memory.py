@@ -36,14 +36,14 @@ def main():
     if not token:
         print("❌ Error: HUGGINGFACEHUB_API_TOKEN or HUGGINGFACE_TOKEN environment variable required")
         return
-    
+
     print("🚀 Testing RAG Chat with Conversation Memory\n")
-    
+
     # Create RAG engine
     print("Creating RAG engine...")
     rag = create_rag_engine(search_func=test_search_function)
     print("✅ RAG engine created\n")
-    
+
     # Test 1: First chat message (creates new session)
     print("=" * 60)
     print("Test 1: First message (new session)")
@@ -57,7 +57,7 @@ def main():
     print(f"Session ID: {session_id}")
     print(f"User: {result1['user_message']}")
     print(f"AI: {result1['response'][:200]}...\n")
-    
+
     # Test 2: Follow-up message in same session
     print("=" * 60)
     print("Test 2: Follow-up message (same session)")
@@ -70,7 +70,7 @@ def main():
     print(f"Session ID: {result2['session_id']}")
     print(f"User: {result2['user_message']}")
     print(f"AI: {result2['response'][:200]}...\n")
-    
+
     # Test 3: Check chat history
     print("=" * 60)
     print("Test 3: Chat history")
@@ -81,7 +81,7 @@ def main():
         role = msg["role"]
         content = msg["content"][:100] + "..." if len(msg["content"]) > 100 else msg["content"]
         print(f"{i}. [{role.upper()}] {content}\n")
-    
+
     # Test 4: Another message to verify context
     print("=" * 60)
     print("Test 4: Third message (testing context)")
@@ -93,7 +93,7 @@ def main():
     )
     print(f"User: {result3['user_message']}")
     print(f"AI: {result3['response']}\n")
-    
+
     # Test 5: Clear history
     print("=" * 60)
     print("Test 5: Clear session history")
@@ -102,7 +102,7 @@ def main():
     print(f"Session cleared: {cleared}")
     history_after_clear = rag.get_chat_history(session_id)
     print(f"Messages after clear: {len(history_after_clear)}\n")
-    
+
     # Test 6: New message after clear
     print("=" * 60)
     print("Test 6: Message after clearing history")
@@ -114,10 +114,10 @@ def main():
     )
     print(f"User: {result4['user_message']}")
     print(f"AI: {result4['response'][:200]}...\n")
-    
+
     history_after_new_msg = rag.get_chat_history(session_id)
     print(f"Messages after new message: {len(history_after_new_msg)}")
-    
+
     print("\n✅ All tests completed successfully!")
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
-import { AlertTriangle, Clock, FileText, Flag, Globe, Languages, Lightbulb, MessageSquare, Music, Music2, Search, Sparkles, Trash2, X, Zap } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { AlertTriangle, Clock, FileText, Flag, Globe, Languages, Lightbulb, MessageSquare, Music, Music2, Search, Sparkles, Trash2, Zap } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -79,8 +79,17 @@ function App() {
     const [userMessage, setUserMessage] = useState('')
     const [sessionId, setSessionId] = useState(null)
     const [chatHistory, setChatHistory] = useState([])
+    const [sidebarOpen, setSidebarOpen] = useState(true)
 
     const apiBase = useMemo(() => API_BASE.replace(/\/$/, ''), [])
+
+    // Debug: Log chat history changes
+    useEffect(() => {
+        console.log('Chat history updated:', chatHistory)
+        console.log('Session ID:', sessionId)
+        console.log('RAG mode:', ragMode)
+        console.log('Use RAG:', useRAG)
+    }, [chatHistory, sessionId, ragMode, useRAG])
 
     const handleSubmit = async (e) => {
         e?.preventDefault()
@@ -120,14 +129,19 @@ function App() {
 
                 const data = await response.json()
                 setRagResponse(data)
-                
+
                 // Update session ID and chat history for chat mode
-                if (ragMode === 'chat' && data.session_id) {
-                    setSessionId(data.session_id)
-                    setChatHistory(data.chat_history || [])
+                if (ragMode === 'chat') {
+                    if (data.session_id) {
+                        setSessionId(data.session_id)
+                    }
+                    if (data.chat_history && Array.isArray(data.chat_history)) {
+                        console.log('Chat history received:', data.chat_history)
+                        setChatHistory(data.chat_history)
+                    }
                     setUserMessage('') // Clear input after sending
                 }
-                
+
                 setResults([]) // Clear regular results
                 setMeta(null)
             } else {
@@ -164,12 +178,12 @@ function App() {
 
     const clearChatHistory = async () => {
         if (!sessionId) return
-        
+
         try {
             const response = await fetch(`${apiBase}/api/rag/clear/${sessionId}`, {
                 method: 'POST',
             })
-            
+
             if (response.ok) {
                 setChatHistory([])
                 setRagResponse(null)
@@ -382,39 +396,90 @@ function App() {
                 </div>
             )}
 
-            {/* Chat History Display */}
-            {ragMode === 'chat' && chatHistory.length > 0 && (
-                <section className="chat-history-section">
-                    <div className="chat-history-card">
-                        <div className="chat-history-header">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Chat History Sidebar */}
+            {useRAG && ragMode === 'chat' && (
+                <>
+                    {/* Sidebar Toggle Button */}
+                    <button
+                        className={`sidebar-toggle ${sidebarOpen ? 'open' : ''}`}
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        title={sidebarOpen ? 'Close chat history' : 'Open chat history'}
+                    >
+                        <MessageSquare size={20} />
+                        {!sidebarOpen && chatHistory.length > 0 && (
+                            <span className="sidebar-badge">{chatHistory.length}</span>
+                        )}
+                    </button>
+
+                    {/* Sidebar */}
+                    <aside className={`chat-sidebar ${sidebarOpen ? 'open' : ''}`}>
+                        <div className="chat-sidebar-header">
+                            <div className="chat-sidebar-title">
                                 <MessageSquare size={20} />
-                                <h3 style={{ margin: 0 }}>Chat History ({chatHistory.length} messages)</h3>
+                                <h3>Chat History</h3>
                             </div>
-                            <button
-                                type="button"
-                                className="clear-history-btn"
-                                onClick={clearChatHistory}
-                                title="Clear chat history"
-                            >
-                                <Trash2 size={16} />
-                                Clear
-                            </button>
+                            <div className="chat-sidebar-actions">
+                                {chatHistory.length > 0 && (
+                                    <button
+                                        type="button"
+                                        className="sidebar-clear-btn"
+                                        onClick={clearChatHistory}
+                                        title="Clear chat history"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    className="sidebar-close-btn"
+                                    onClick={() => setSidebarOpen(false)}
+                                    title="Close sidebar"
+                                >
+                                    <Zap size={16} style={{ transform: 'rotate(90deg)' }} />
+                                </button>
+                            </div>
                         </div>
-                        <div className="chat-history-messages">
-                            {chatHistory.map((msg, idx) => (
-                                <div key={idx} className={`chat-message ${msg.role}`}>
-                                    <div className="chat-message-label">
-                                        {msg.role === 'user' ? 'You' : 'AI'}
-                                    </div>
-                                    <div className="chat-message-content">
-                                        {msg.content}
-                                    </div>
+                        <div className="chat-sidebar-content">
+                            {sessionId && (
+                                <div className="chat-sidebar-session">
+                                    <span className="session-label">Session:</span>
+                                    <span className="session-id">{sessionId.slice(0, 8)}...</span>
                                 </div>
-                            ))}
+                            )}
+                            {chatHistory.length === 0 ? (
+                                <div className="chat-sidebar-empty">
+                                    <MessageSquare size={48} style={{ opacity: 0.3 }} />
+                                    <p>No messages yet</p>
+                                    <p style={{ fontSize: '0.875rem', opacity: 0.7 }}>Start chatting to see your conversation history</p>
+                                </div>
+                            ) : (
+                                <div className="chat-sidebar-messages">
+                                    {chatHistory.map((msg, idx) => (
+                                        <div key={idx} className={`chat-sidebar-message ${msg.role}`}>
+                                            <div className="chat-sidebar-message-header">
+                                                <span className="chat-sidebar-message-role">
+                                                    {msg.role === 'user' ? 'You' : 'AI'}
+                                                </span>
+                                                <span className="chat-sidebar-message-number">#{idx + 1}</span>
+                                            </div>
+                                            <div className="chat-sidebar-message-content">
+                                                {msg.content}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    </div>
-                </section>
+                    </aside>
+
+                    {/* Overlay for mobile */}
+                    {sidebarOpen && (
+                        <div 
+                            className="sidebar-overlay"
+                            onClick={() => setSidebarOpen(false)}
+                        />
+                    )}
+                </>
             )}
 
             {/* RAG Response Display */}
