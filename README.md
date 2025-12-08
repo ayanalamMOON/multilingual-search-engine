@@ -287,19 +287,19 @@ WEAVIATE_PERSIST_PATH=.weaviate # Local persistence directory
 
 ### Configuration Options
 
-| Variable            | Description                                                 | Default                                 |
-| ------------------- | ----------------------------------------------------------- | --------------------------------------- |
-| `OPENAI_API_KEY`    | OpenAI API key for RAG features (GPT-3.5/GPT-4)             | None                                    |
-| `HUGGINGFACE_TOKEN` | HuggingFace token (for rate limits & alternative RAG)       | None                                    |
-| `DATASET_ID`        | Hindi poems dataset(s), comma/newline separated             | `Sourabh2/Hindi_Poems`                  |
-| `EN_DATASET_ID`     | English lyrics dataset(s), comma/newline separated          | Multiple datasets                       |
-| `EMBED_MODEL`       | Sentence transformer model for embeddings                   | `paraphrase-multilingual-MiniLM-L12-v2` |
-| `VECTOR_BACKEND`    | Vector database to use                                      | `faiss`                                 |
-| `FAISS_INDEX_PATH`  | Path to store FAISS index                                   | `artifacts/faiss_index`                 |
-| `INCLUDE_ENGLISH`   | Whether to index English corpus                             | `1` (yes)                               |
-| `DATASET_LIMIT`     | Max rows per dataset (for testing)                          | None (all)                              |
-| `WEAVIATE_URL`      | Weaviate instance URL                                       | None                                    |
-| `WEAVIATE_API_KEY`  | API key for Weaviate cloud                                  | None                                    |
+| Variable            | Description                                           | Default                                 |
+| ------------------- | ----------------------------------------------------- | --------------------------------------- |
+| `OPENAI_API_KEY`    | OpenAI API key for RAG features (GPT-3.5/GPT-4)       | None                                    |
+| `HUGGINGFACE_TOKEN` | HuggingFace token (for rate limits & alternative RAG) | None                                    |
+| `DATASET_ID`        | Hindi poems dataset(s), comma/newline separated       | `Sourabh2/Hindi_Poems`                  |
+| `EN_DATASET_ID`     | English lyrics dataset(s), comma/newline separated    | Multiple datasets                       |
+| `EMBED_MODEL`       | Sentence transformer model for embeddings             | `paraphrase-multilingual-MiniLM-L12-v2` |
+| `VECTOR_BACKEND`    | Vector database to use                                | `faiss`                                 |
+| `FAISS_INDEX_PATH`  | Path to store FAISS index                             | `artifacts/faiss_index`                 |
+| `INCLUDE_ENGLISH`   | Whether to index English corpus                       | `1` (yes)                               |
+| `DATASET_LIMIT`     | Max rows per dataset (for testing)                    | None (all)                              |
+| `WEAVIATE_URL`      | Weaviate instance URL                                 | None                                    |
+| `WEAVIATE_API_KEY`  | API key for Weaviate cloud                            | None                                    |
 
 ### Runtime Language Control
 

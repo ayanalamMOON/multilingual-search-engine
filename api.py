@@ -13,7 +13,17 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from rag import create_rag_engine, RAGEngine
+# Try to import RAG - optional feature
+try:
+    from rag import create_rag_engine, RAGEngine
+    RAG_AVAILABLE = True
+except Exception as e:
+    print(f"[WARNING] RAG features not available: {str(e)[:100]}")
+    print("[INFO] RAG requires compatible langchain versions. Search still works!")
+    RAG_AVAILABLE = False
+    RAGEngine = None
+    create_rag_engine = None
+
 from app import (
     Settings,
     _is_devanagari,
@@ -82,6 +92,7 @@ class RAGRequest(BaseModel):
     mode: Literal["summary", "recommendation", "chat"] = Field(
         "summary", description="RAG mode: summary, recommendation, or chat"
     )
+    user_message: Optional[str] = Field(None, description="User message for chat mode")
 
 
 class RAGResponse(BaseModel):
@@ -277,104 +288,103 @@ class RecommenderEngine:
             results=formatted,
             counts={"hi": state.hi_docs, "en": state.en_docs},
         )
-    
+
     def _search_wrapper(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
-        """Wrapper function for RAG engine to use our search"""
-        import asyncio
-        
-        # Create a search request
-        request = SearchRequest(query=query, top_k=top_k, lang="auto")
-        
-        # Run async search in sync context
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        """Wrapper function for RAG engine to use our search - runs synchronously"""
+        # Use the state directly for synchronous search
+        state = self.state
+        if not state:
+            return []
+
         try:
-            response = loop.run_until_complete(self.search(request))
-            return [
-                {
-                    "id": r.id,
-                    "text": r.text,
-                    "title": r.title,
-                    "poet": r.poet,
-                    "language": r.language,
-                    "score": r.score,
-                    "period": r.period,
-                    "hinglish": r.hinglish,
-                }
-                for r in response.results
-            ]
-        finally:
-            loop.close()
-    
+            # Prepare the search query
+            search_query = prepare_query(query)
+
+            # Perform similarity search
+            result_pairs = similarity_search(state.combined_store, search_query, k=top_k)
+            ranked = group_unique_results(result_pairs, top_k)
+
+            # Format results
+            results = []
+            for idx, (doc, score) in enumerate(ranked, start=1):
+                meta = doc.metadata or {}
+                display_text = meta.get("display_text", doc.page_content)
+                language = (meta.get("language") or "").lower() or "hi"
+                hinglish = transliterate_to_hinglish(display_text) if _is_devanagari(display_text) else None
+
+                results.append({
+                    "id": hashlib.md5(f"{language}-{idx}-{display_text[:32]}".encode("utf-8")).hexdigest(),
+                    "text": display_text,
+                    "title": meta.get("title"),
+                    "poet": meta.get("poet"),
+                    "language": language,
+                    "score": float(score) if score else None,
+                    "period": meta.get("period"),
+                    "hinglish": hinglish,
+                })
+
+            return results
+        except Exception as e:
+            print(f"Search wrapper error: {e}")
+            return []
+
     async def ensure_rag_ready(self) -> bool:
         """Initialize RAG engine if not already done"""
+        if not RAG_AVAILABLE:
+            return False
+
         state = await self.ensure_ready()
-        
+
         if state.rag_engine is not None:
             return True
-        
+
         try:
-            # Try OpenAI first, fallback to HuggingFace
-            import os
-            use_openai = bool(os.getenv("OPENAI_API_KEY"))
-            
             state.rag_engine = create_rag_engine(
-                search_function=self._search_wrapper,
-                use_openai=use_openai,
+                search_func=self._search_wrapper,
             )
-            
             return state.rag_engine is not None
         except Exception as e:
             print(f"Failed to initialize RAG engine: {e}")
             return False
-    
+
     async def generate_rag_response(self, request: RAGRequest) -> RAGResponse:
         """Generate RAG response"""
         rag_ready = await self.ensure_rag_ready()
         state = await self.ensure_ready()
-        
+
         if not rag_ready or state.rag_engine is None:
             raise HTTPException(
                 status_code=503,
-                detail="RAG engine not available. Please set OPENAI_API_KEY or HUGGINGFACE_TOKEN environment variable."
+                detail="RAG engine not available. Please set HUGGINGFACEHUB_API_TOKEN or HUGGINGFACE_TOKEN environment variable."
             )
-        
+
         try:
             if request.mode == "summary":
                 result = state.rag_engine.generate_summary(request.query, request.top_k)
                 return RAGResponse(
                     query=request.query,
                     response=result["summary"],
-                    sources=result["source_documents"],
+                    sources=result["sources"],
                     mode="summary",
                 )
             elif request.mode == "recommendation":
                 result = state.rag_engine.generate_recommendation(request.query, request.top_k)
                 return RAGResponse(
                     query=request.query,
-                    response=result["recommendation"],
-                    sources=result["source_documents"],
+                    response=result["recommendations"],
+                    sources=result["sources"],
                     mode="recommendation",
                 )
             else:  # chat mode
-                response_text = state.rag_engine.chat(request.query, top_k=request.top_k)
-                # For chat mode, we need to get sources separately
-                search_req = SearchRequest(query=request.query, top_k=request.top_k, lang="auto")
-                search_resp = await self.search(search_req)
-                sources = [
-                    {
-                        "title": r.title,
-                        "poet": r.poet,
-                        "text": r.text[:200] + "..." if len(r.text) > 200 else r.text,
-                        "language": r.language,
-                        "score": r.score,
-                    }
-                    for r in search_resp.results
-                ]
+                result = state.rag_engine.chat(
+                    query=request.query,
+                    user_message=request.user_message or "Tell me about these results",
+                    top_k=request.top_k
+                )
                 return RAGResponse(
                     query=request.query,
-                    response=response_text,
-                    sources=sources,
+                    response=result["response"],
+                    sources=result["sources"],
                     mode="chat",
                 )
         except Exception as e:
@@ -437,12 +447,12 @@ async def search(request: SearchRequest):
 async def rag_generate(request: RAGRequest):
     """
     Generate AI-enhanced responses using RAG
-    
+
     Modes:
     - summary: Generate a summary of retrieved content
     - recommendation: Get personalized recommendations
     - chat: Interactive chat about the content
-    
+
     Requires: OPENAI_API_KEY or HUGGINGFACE_TOKEN environment variable
     """
     if not request.query.strip():

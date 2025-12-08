@@ -1,4 +1,4 @@
-import { AlertTriangle, Clock, Flag, Globe, Languages, Music, Music2, Search, Sparkles, Zap } from 'lucide-react'
+import { AlertTriangle, Clock, FileText, Flag, Globe, Languages, Lightbulb, MessageSquare, Music, Music2, Search, Sparkles, Zap } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import './App.css'
 
@@ -9,6 +9,12 @@ const languageOptions = [
     { value: 'hi', label: 'Hindi first' },
     { value: 'en', label: 'English only' },
     { value: 'both', label: 'Blend both' },
+]
+
+const ragModes = [
+    { value: 'summary', label: 'Summary', icon: FileText, description: 'Get a concise summary' },
+    { value: 'recommendation', label: 'Recommendations', icon: Lightbulb, description: 'Get personalized suggestions' },
+    { value: 'chat', label: 'Chat', icon: MessageSquare, description: 'Ask questions' },
 ]
 
 const sampleQueries = [
@@ -67,36 +73,74 @@ function App() {
     const [error, setError] = useState('')
     const [results, setResults] = useState([])
     const [meta, setMeta] = useState(null)
+    const [useRAG, setUseRAG] = useState(false)
+    const [ragMode, setRagMode] = useState('summary')
+    const [ragResponse, setRagResponse] = useState(null)
+    const [userMessage, setUserMessage] = useState('')
 
     const apiBase = useMemo(() => API_BASE.replace(/\/$/, ''), [])
 
     const handleSubmit = async (e) => {
         e?.preventDefault()
         setError('')
+        setRagResponse(null)
+
         if (!query.trim()) {
             setError('Please enter something to search')
             return
         }
 
+        if (useRAG && ragMode === 'chat' && !userMessage.trim()) {
+            setError('Please enter a question for chat mode')
+            return
+        }
+
         setLoading(true)
         try {
-            const response = await fetch(`${apiBase}/api/search`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query, top_k: Number(topK), lang, include_english: includeEnglish }),
-            })
+            if (useRAG) {
+                // RAG mode
+                const response = await fetch(`${apiBase}/api/rag`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query,
+                        top_k: Number(topK),
+                        mode: ragMode,
+                        user_message: ragMode === 'chat' ? userMessage : undefined
+                    }),
+                })
 
-            if (!response.ok) {
-                const detail = await response.json().catch(() => ({}))
-                throw new Error(detail.detail || 'Search failed')
+                if (!response.ok) {
+                    const detail = await response.json().catch(() => ({}))
+                    throw new Error(detail.detail || 'RAG request failed')
+                }
+
+                const data = await response.json()
+                setRagResponse(data)
+                setResults([]) // Clear regular results
+                setMeta(null)
+            } else {
+                // Regular search mode
+                const response = await fetch(`${apiBase}/api/search`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, top_k: Number(topK), lang, include_english: includeEnglish }),
+                })
+
+                if (!response.ok) {
+                    const detail = await response.json().catch(() => ({}))
+                    throw new Error(detail.detail || 'Search failed')
+                }
+
+                const data = await response.json()
+                setResults(data.results || [])
+                setMeta({ backend: data.backend, counts: data.counts })
+                setRagResponse(null) // Clear RAG response
             }
-
-            const data = await response.json()
-            setResults(data.results || [])
-            setMeta({ backend: data.backend, counts: data.counts })
         } catch (err) {
             setError(err.message || 'Something went wrong')
             setResults([])
+            setRagResponse(null)
         } finally {
             setLoading(false)
         }
@@ -164,6 +208,49 @@ function App() {
                     <p className="section-subtitle">Enter lyrics, themes, or emotions in any language</p>
                 </div>
                 <div className="panel">
+                    {/* RAG Mode Toggle */}
+                    <div className="rag-toggle">
+                        <label className="checkbox">
+                            <input
+                                type="checkbox"
+                                checked={useRAG}
+                                onChange={(e) => setUseRAG(e.target.checked)}
+                            />
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Sparkles size={16} />
+                                AI-Enhanced Mode (RAG)
+                            </span>
+                        </label>
+                        {useRAG && (
+                            <p style={{ fontSize: '0.875rem', color: '#666', marginTop: '4px', marginLeft: '24px' }}>
+                                Get AI-generated insights, summaries, and recommendations
+                            </p>
+                        )}
+                    </div>
+
+                    {/* RAG Mode Selector */}
+                    {useRAG && (
+                        <div className="rag-modes">
+                            {ragModes.map((mode) => {
+                                const Icon = mode.icon
+                                return (
+                                    <button
+                                        key={mode.value}
+                                        type="button"
+                                        className={`rag-mode-btn ${ragMode === mode.value ? 'active' : ''}`}
+                                        onClick={() => setRagMode(mode.value)}
+                                    >
+                                        <Icon size={20} />
+                                        <div>
+                                            <div style={{ fontWeight: '600' }}>{mode.label}</div>
+                                            <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>{mode.description}</div>
+                                        </div>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="form">
                         <div className="input-row">
                             <div className="search-input-wrapper">
@@ -185,16 +272,29 @@ function App() {
                         </div>
 
                         <div className="controls">
-                            <label className="field">
-                                <span>Language focus</span>
-                                <select value={lang} onChange={(e) => setLang(e.target.value)}>
-                                    {languageOptions.map((opt) => (
-                                        <option key={opt.value} value={opt.value}>
-                                            {opt.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
+                            {!useRAG && (
+                                <>
+                                    <label className="field">
+                                        <span>Language focus</span>
+                                        <select value={lang} onChange={(e) => setLang(e.target.value)}>
+                                            {languageOptions.map((opt) => (
+                                                <option key={opt.value} value={opt.value}>
+                                                    {opt.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+
+                                    <label className="checkbox">
+                                        <input
+                                            type="checkbox"
+                                            checked={includeEnglish}
+                                            onChange={(e) => setIncludeEnglish(e.target.checked)}
+                                        />
+                                        <span>Include English lyrics</span>
+                                    </label>
+                                </>
+                            )}
 
                             <label className="field">
                                 <span>Top K</span>
@@ -206,16 +306,23 @@ function App() {
                                     onChange={(e) => setTopK(Number(e.target.value))}
                                 />
                             </label>
-
-                            <label className="checkbox">
-                                <input
-                                    type="checkbox"
-                                    checked={includeEnglish}
-                                    onChange={(e) => setIncludeEnglish(e.target.checked)}
-                                />
-                                <span>Include English lyrics</span>
-                            </label>
                         </div>
+
+                        {/* Chat mode user message input */}
+                        {useRAG && ragMode === 'chat' && (
+                            <div style={{ marginTop: '1rem' }}>
+                                <label className="field">
+                                    <span>Your Question</span>
+                                    <input
+                                        type="text"
+                                        value={userMessage}
+                                        onChange={(e) => setUserMessage(e.target.value)}
+                                        placeholder="e.g., What makes these poems special?"
+                                        className="text-input"
+                                    />
+                                </label>
+                            </div>
+                        )}
                     </form>
 
                     <div className="samples-section">
@@ -245,6 +352,51 @@ function App() {
                     <AlertTriangle className="alert-icon" size={20} />
                     {error}
                 </div>
+            )}
+
+            {/* RAG Response Display */}
+            {ragResponse && !loading && (
+                <section className="rag-response-section">
+                    <div className="rag-response-card">
+                        <div className="rag-response-header">
+                            <Sparkles size={24} />
+                            <div>
+                                <h2>AI Response</h2>
+                                <p style={{ fontSize: '0.875rem', opacity: 0.7 }}>
+                                    Query: "{ragResponse.query}" • Mode: {ragResponse.mode}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="rag-response-content">
+                            <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', lineHeight: '1.6' }}>
+                                {ragResponse.response}
+                            </pre>
+                        </div>
+                        {ragResponse.sources && ragResponse.sources.length > 0 && (
+                            <div className="rag-sources">
+                                <h3 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                                    Sources ({ragResponse.sources.length})
+                                </h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    {ragResponse.sources.map((source, idx) => (
+                                        <div key={idx} style={{
+                                            padding: '0.5rem',
+                                            background: '#f5f5f5',
+                                            borderRadius: '4px',
+                                            fontSize: '0.875rem'
+                                        }}>
+                                            <strong>{source.title || 'Untitled'}</strong>
+                                            {source.poet && <span> by {source.poet}</span>}
+                                            {source.score !== undefined && (
+                                                <span style={{ opacity: 0.6 }}> • Score: {source.score.toFixed(3)}</span>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </section>
             )}
 
             <section className="results" aria-live="polite">
