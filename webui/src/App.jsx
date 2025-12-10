@@ -474,7 +474,7 @@ function App() {
 
                     {/* Overlay for mobile */}
                     {sidebarOpen && (
-                        <div 
+                        <div
                             className="sidebar-overlay"
                             onClick={() => setSidebarOpen(false)}
                         />
