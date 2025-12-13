@@ -1,0 +1,80 @@
+\contentsline {section}{\numberline {1}Abstract}{4}{section.1}%
+\contentsline {section}{\numberline {2}Problem Definition}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}The Core Challenge: Semantic Music Discovery for Hindi Content}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Formal Problem Statement}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Why Semantic Search Solves the Problem}{5}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Solution Approach}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Methodology Overview}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Mathematical Foundations}{6}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Sentence Embeddings}{6}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Cosine Similarity}{6}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.3}Approximate Nearest Neighbor Search}{6}{subsubsection.3.2.3}%
+\contentsline {subsection}{\numberline {3.3}Query Augmentation Strategy}{7}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}RAG (Retrieval-Augmented Generation) Architecture}{7}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Why This Architecture?}{7}{subsection.3.5}%
+\contentsline {section}{\numberline {4}Algorithm Analysis}{7}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Time Complexity}{7}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Space Requirements}{7}{subsection.4.2}%
+\contentsline {section}{\numberline {5}Introduction \& Problem Statement}{8}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Background}{8}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Objectives}{8}{subsection.5.2}%
+\contentsline {section}{\numberline {6}System Architecture}{9}{section.6}%
+\contentsline {subsection}{\numberline {6.1}High-Level Overview}{9}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Component Interaction Flow}{9}{subsection.6.2}%
+\contentsline {section}{\numberline {7}Technology Stack \& Dependencies}{9}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Core Dependencies}{9}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Frontend Stack}{10}{subsection.7.2}%
+\contentsline {section}{\numberline {8}Datasets \& Models}{10}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Hindi Content Dataset}{10}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}English Lyrics Datasets}{11}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}Embedding Model}{11}{subsection.8.3}%
+\contentsline {subsection}{\numberline {8.4}RAG Language Model}{11}{subsection.8.4}%
+\contentsline {section}{\numberline {9}Environment Configuration}{11}{section.9}%
+\contentsline {section}{\numberline {10}Implementation Details}{11}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Configuration Management}{12}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}Script Detection \& Transliteration}{13}{subsection.10.2}%
+\contentsline {subsection}{\numberline {10.3}Transliteration Functions}{14}{subsection.10.3}%
+\contentsline {subsection}{\numberline {10.4}Dataset Loading \& Chunking}{15}{subsection.10.4}%
+\contentsline {subsection}{\numberline {10.5}Embedding Generation}{16}{subsection.10.5}%
+\contentsline {subsection}{\numberline {10.6}FAISS Vector Store}{16}{subsection.10.6}%
+\contentsline {subsection}{\numberline {10.7}Query Preparation}{17}{subsection.10.7}%
+\contentsline {subsection}{\numberline {10.8}Similarity Search \& Deduplication}{18}{subsection.10.8}%
+\contentsline {section}{\numberline {11}RAG (Retrieval-Augmented Generation) System}{19}{section.11}%
+\contentsline {subsection}{\numberline {11.1}RAG Engine Architecture}{19}{subsection.11.1}%
+\contentsline {subsection}{\numberline {11.2}HuggingFace LLM Wrapper}{20}{subsection.11.2}%
+\contentsline {subsection}{\numberline {11.3}Conversation Memory Management}{21}{subsection.11.3}%
+\contentsline {subsection}{\numberline {11.4}RAG Modes}{22}{subsection.11.4}%
+\contentsline {section}{\numberline {12}FastAPI Backend}{23}{section.12}%
+\contentsline {subsection}{\numberline {12.1}API Structure}{23}{subsection.12.1}%
+\contentsline {subsection}{\numberline {12.2}Request/Response Models}{23}{subsection.12.2}%
+\contentsline {subsection}{\numberline {12.3}Core Endpoints}{24}{subsection.12.3}%
+\contentsline {subsection}{\numberline {12.4}Chat Memory Endpoints}{25}{subsection.12.4}%
+\contentsline {section}{\numberline {13}React Frontend}{26}{section.13}%
+\contentsline {subsection}{\numberline {13.1}Component Structure}{26}{subsection.13.1}%
+\contentsline {subsection}{\numberline {13.2}Result Card Component}{27}{subsection.13.2}%
+\contentsline {subsection}{\numberline {13.3}Search Handler}{28}{subsection.13.3}%
+\contentsline {section}{\numberline {14}Simulated Terminal Outputs}{29}{section.14}%
+\contentsline {subsection}{\numberline {14.1}CLI Search Example}{30}{subsection.14.1}%
+\contentsline {subsection}{\numberline {14.2}API Server Startup}{30}{subsection.14.2}%
+\contentsline {subsection}{\numberline {14.3}Search API Response}{31}{subsection.14.3}%
+\contentsline {subsection}{\numberline {14.4}RAG Chat Mode}{32}{subsection.14.4}%
+\contentsline {section}{\numberline {15}User Interface}{32}{section.15}%
+\contentsline {subsection}{\numberline {15.1}UI Features}{32}{subsection.15.1}%
+\contentsline {section}{\numberline {16}Deployment \& Setup}{33}{section.16}%
+\contentsline {subsection}{\numberline {16.1}Installation Steps}{33}{subsection.16.1}%
+\contentsline {subsection}{\numberline {16.2}Running the Application}{33}{subsection.16.2}%
+\contentsline {subsection}{\numberline {16.3}Production Build}{34}{subsection.16.3}%
+\contentsline {subsection}{\numberline {16.4}Weaviate Setup (Optional)}{34}{subsection.16.4}%
+\contentsline {section}{\numberline {17}Testing \& Validation}{34}{section.17}%
+\contentsline {subsection}{\numberline {17.1}API Health Check}{34}{subsection.17.1}%
+\contentsline {subsection}{\numberline {17.2}Search Validation}{34}{subsection.17.2}%
+\contentsline {subsection}{\numberline {17.3}RAG Mode Testing}{34}{subsection.17.3}%
+\contentsline {section}{\numberline {18}Algorithm Analysis}{34}{section.18}%
+\contentsline {subsection}{\numberline {18.1}Cosine Similarity}{35}{subsection.18.1}%
+\contentsline {subsection}{\numberline {18.2}Time Complexity}{35}{subsection.18.2}%
+\contentsline {subsection}{\numberline {18.3}Space Complexity}{35}{subsection.18.3}%
+\contentsline {section}{\numberline {19}Performance Metrics}{35}{section.19}%
+\contentsline {section}{\numberline {20}Future Enhancements}{35}{section.20}%
+\contentsline {section}{\numberline {21}Conclusion}{36}{section.21}%
+\contentsline {section}{\numberline {A}API Reference Summary}{37}{appendix.A}%
+\contentsline {section}{\numberline {B}Project File Structure}{37}{appendix.B}%

@@ -1,0 +1,130 @@
+\relax 
+\providecommand\zref@newlabel[2]{}
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand*\HyPL@Entry[1]{}
+\HyPL@Entry{0<</S/D>>}
+\HyPL@Entry{1<</S/D>>}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Abstract}{4}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Problem Definition}{4}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}The Core Challenge: Semantic Music Discovery for Hindi Content}{4}{subsection.2.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Core challenges addressed by our semantic search approach.}}{4}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:problems}{{1}{4}{Core challenges addressed by our semantic search approach}{figure.caption.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Formal Problem Statement}{4}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Why Semantic Search Solves the Problem}{5}{subsection.2.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Semantic embedding space: similar concepts cluster together regardless of language/script.}}{5}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:embedding-space}{{2}{5}{Semantic embedding space: similar concepts cluster together regardless of language/script}{figure.caption.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Solution Approach}{5}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Methodology Overview}{5}{subsection.3.1}\protected@file@percent }
+\newlabel{fig:methodology}{{3.1}{5}{Methodology Overview}{figure.caption.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Mathematical Foundations}{6}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Sentence Embeddings}{6}{subsubsection.3.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Cosine Similarity}{6}{subsubsection.3.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}Approximate Nearest Neighbor Search}{6}{subsubsection.3.2.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces FAISS HNSW index enables logarithmic-time approximate nearest neighbor search.}}{7}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:hnsw}{{3}{7}{FAISS HNSW index enables logarithmic-time approximate nearest neighbor search}{figure.caption.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Query augmentation ensures matching across scripts by including both romanized and Devanagari forms.}}{7}{figure.caption.5}\protected@file@percent }
+\newlabel{fig:augmentation}{{4}{7}{Query augmentation ensures matching across scripts by including both romanized and Devanagari forms}{figure.caption.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Query Augmentation Strategy}{7}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}RAG (Retrieval-Augmented Generation) Architecture}{7}{subsection.3.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces RAG architecture: retrieval provides grounded context for LLM generation.}}{7}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:rag-architecture}{{5}{7}{RAG architecture: retrieval provides grounded context for LLM generation}{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Why This Architecture?}{7}{subsection.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Algorithm Analysis}{7}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Time Complexity}{7}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Space Requirements}{7}{subsection.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Design Decisions and Rationale}}{8}{table.caption.7}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Computational Complexity by Operation}}{8}{table.caption.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Introduction \& Problem Statement}{8}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Background}{8}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Objectives}{8}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}System Architecture}{9}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}High-Level Overview}{9}{subsection.6.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Layered architecture of the recommendation system.}}{9}{figure.caption.9}\protected@file@percent }
+\newlabel{fig:architecture}{{6}{9}{Layered architecture of the recommendation system}{figure.caption.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Component Interaction Flow}{9}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Technology Stack \& Dependencies}{9}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Core Dependencies}{9}{subsection.7.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Query processing flow with script detection and optional RAG enhancement.}}{10}{figure.caption.10}\protected@file@percent }
+\newlabel{fig:flow}{{7}{10}{Query processing flow with script detection and optional RAG enhancement}{figure.caption.10}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Primary Python Dependencies}}{10}{table.caption.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Frontend Stack}{10}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Datasets \& Models}{10}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Hindi Content Dataset}{10}{subsection.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}English Lyrics Datasets}{11}{subsection.8.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3}Embedding Model}{11}{subsection.8.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.4}RAG Language Model}{11}{subsection.8.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Environment Configuration}{11}{section.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10}Implementation Details}{11}{section.10}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Configuration Variables}}{12}{table.caption.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.1}Configuration Management}{12}{subsection.10.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}{\ignorespaces Settings dataclass from \texttt  {\small  app.py}}}{12}{lstlisting.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.2}Script Detection \& Transliteration}{13}{subsection.10.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}{\ignorespaces Script detection utilities}}{13}{lstlisting.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.3}Transliteration Functions}{14}{subsection.10.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}{\ignorespaces Transliteration between scripts}}{14}{lstlisting.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.4}Dataset Loading \& Chunking}{15}{subsection.10.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}{\ignorespaces Hindi poem loading with chunking}}{15}{lstlisting.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.5}Embedding Generation}{16}{subsection.10.5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}{\ignorespaces Cosine-ready embeddings via normalization}}{16}{lstlisting.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.6}FAISS Vector Store}{16}{subsection.10.6}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {6}{\ignorespaces FAISS index lifecycle management}}{17}{lstlisting.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.7}Query Preparation}{17}{subsection.10.7}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7}{\ignorespaces Query augmentation for multilingual search}}{18}{lstlisting.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.8}Similarity Search \& Deduplication}{18}{subsection.10.8}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8}{\ignorespaces Result grouping and deduplication}}{18}{lstlisting.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {11}RAG (Retrieval-Augmented Generation) System}{19}{section.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {11.1}RAG Engine Architecture}{19}{subsection.11.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {9}{\ignorespaces RAG Engine class structure from \texttt  {\small  rag.py}}}{20}{lstlisting.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {11.2}HuggingFace LLM Wrapper}{20}{subsection.11.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {10}{\ignorespaces HuggingFace Inference API wrapper}}{20}{lstlisting.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {11.3}Conversation Memory Management}{21}{subsection.11.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {11}{\ignorespaces Session-based conversation memory}}{21}{lstlisting.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {11.4}RAG Modes}{22}{subsection.11.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {12}FastAPI Backend}{23}{section.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {12.1}API Structure}{23}{subsection.12.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {12}{\ignorespaces FastAPI application setup from \texttt  {\small  api.py}}}{23}{lstlisting.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {12.2}Request/Response Models}{23}{subsection.12.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {13}{\ignorespaces Pydantic models for API contracts}}{24}{lstlisting.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {12.3}Core Endpoints}{24}{subsection.12.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {14}{\ignorespaces Main API endpoints}}{24}{lstlisting.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {12.4}Chat Memory Endpoints}{25}{subsection.12.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {15}{\ignorespaces Session management endpoints}}{25}{lstlisting.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {13}React Frontend}{26}{section.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {13.1}Component Structure}{26}{subsection.13.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {16}{\ignorespaces Main App component structure from \texttt  {\small  App.jsx}}}{26}{lstlisting.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {13.2}Result Card Component}{27}{subsection.13.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {17}{\ignorespaces ResultCard component with text formatting}}{27}{lstlisting.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {13.3}Search Handler}{28}{subsection.13.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {18}{\ignorespaces API call logic for search and RAG}}{28}{lstlisting.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {14}Simulated Terminal Outputs}{29}{section.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {14.1}CLI Search Example}{30}{subsection.14.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {14.2}API Server Startup}{30}{subsection.14.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {14.3}Search API Response}{31}{subsection.14.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {14.4}RAG Chat Mode}{32}{subsection.14.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {15}User Interface}{32}{section.15}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces React/Vite UI showing multilingual search results with language pills, similarity scores, and Hinglish transliterations.}}{32}{figure.caption.13}\protected@file@percent }
+\newlabel{fig:ui}{{8}{32}{React/Vite UI showing multilingual search results with language pills, similarity scores, and Hinglish transliterations}{figure.caption.13}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {15.1}UI Features}{32}{subsection.15.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {16}Deployment \& Setup}{33}{section.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {16.1}Installation Steps}{33}{subsection.16.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {16.2}Running the Application}{33}{subsection.16.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {16.3}Production Build}{34}{subsection.16.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {16.4}Weaviate Setup (Optional)}{34}{subsection.16.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {17}Testing \& Validation}{34}{section.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {17.1}API Health Check}{34}{subsection.17.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {17.2}Search Validation}{34}{subsection.17.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {17.3}RAG Mode Testing}{34}{subsection.17.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {18}Algorithm Analysis}{34}{section.18}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Sample Query Results}}{35}{table.caption.14}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces RAG Response Times}}{35}{table.caption.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {18.1}Cosine Similarity}{35}{subsection.18.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {18.2}Time Complexity}{35}{subsection.18.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {18.3}Space Complexity}{35}{subsection.18.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {19}Performance Metrics}{35}{section.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {20}Future Enhancements}{35}{section.20}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Average latency breakdown for search requests (cold start excluded).}}{36}{figure.caption.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {21}Conclusion}{36}{section.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A}API Reference Summary}{37}{appendix.A}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {B}Project File Structure}{37}{appendix.B}\protected@file@percent }
+\gdef \@abspage@last{38}
